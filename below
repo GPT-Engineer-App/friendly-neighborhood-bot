@@ -1,0 +1,97 @@
+import React, { useState } from "react";
+import { Box, Button, Container, FormControl, FormLabel, Heading, Input, Stack, useToast, VStack, Text } from "@chakra-ui/react";
+import axios from "axios";
+
+const Index = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+  const toast = useToast();
+  const apiUrl = "https://backengine-1a72.fly.dev";
+
+  const handleHealthCheck = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/healthcheck`);
+      toast({
+        title: "Health Check",
+        description: response.data.status,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Health Check Failed",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const userData = { email, password };
+    try {
+      if (isLogin) {
+        const response = await axios.post(`${apiUrl}/login`, userData);
+        toast({
+          title: "Logged In",
+          description: "You have successfully logged in!",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        await axios.post(`${apiUrl}/signup`, userData);
+        toast({
+          title: "Signed Up",
+          description: "Your account has been created!",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response.data.detail || error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  return (
+    <Container centerContent>
+      <VStack spacing={8} py={10}>
+        <Box>
+          <Heading>{isLogin ? "Login" : "Sign Up"}</Heading>
+        </Box>
+        <Stack spacing={4} as="form" onSubmit={handleSubmit} width="100%">
+          <FormControl isRequired>
+            <FormLabel>Email</FormLabel>
+            <Input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </FormControl>
+          <FormControl isRequired>
+            <FormLabel>Password</FormLabel>
+            <Input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </FormControl>
+          <Button type="submit" colorScheme="blue" width="full">
+            {isLogin ? "Login" : "Sign Up"}
+          </Button>
+        </Stack>
+        <Button variant="link" colorScheme="blue" onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? "Need an account? Sign up!" : "Already have an account? Login!"}
+        </Button>
+        <Button colorScheme="green" onClick={handleHealthCheck}>
+          Health Check
+        </Button>
+      </VStack>
+    </Container>
+  );
+};
+
+export default Index;
